@@ -73,27 +73,55 @@
                 return _vec;
             }
 
+            
+            Config = function() {
+                config = {
+                    maxSpeed: Math.random() + 2.5,
+                    baseWeight: Math.random() + 5,
+                    alignment: {
+                        range: Math.random() * 800,
+                        weight: Math.random(),
+                    },
+                    cohesion: {
+                        range: Math.random() * 800,
+                        weight: Math.random(),
+                    },
+                    separation: {
+                        range: Math.random() * 800,
+                        weight: Math.random(),
+                    }
+                };
+                return config;
+            }
+
+            ApplyVariance = function(oldConfig) {
+                var variance = Math.random() / 5;
+                variance = variance - variance / 2;
+                var newConfig = Config();
+
+                newConfig.baseWeight = (oldConfig.baseWeight - 5) * variance + 5,
+                newConfig.maxSpeed += variance;
+
+                newConfig.alignment.range = (oldConfig.alignment.range / 800 + variance) * 800;
+                newConfig.cohesion.range = (oldConfig.cohesion.range / 800 + variance) * 800;
+                newConfig.separation.range = (oldConfig.separation.range / 800 + variance) * 800;
+                
+                newConfig.alignment.weight = oldConfig.alignment.weight + variance;
+                newConfig.cohesion.weight = oldConfig.cohesion.weight + variance;
+                newConfig.separation.weight = oldConfig.separation.weight + variance;
+
+                return newConfig;
+            }
+
+            var masterConfig = Config();
+            var startTime = new Date();
+
             Boid = function (_id, _x, _y, _master) {
                 return {
                     id: _id,
                     pos: Vector(_x, _y),
                     velocity: Vector(0, 0),
-                    config: {
-                        maxSpeed: Math.random() + 1,
-                        baseWeight: Math.round((Math.random() * 3) * 10) / 10 + 6,
-                        alignment: {
-                            range: 100,
-                            weight: Math.round((Math.random()) * 10) / 10,
-                        },
-                        cohesion: {
-                            range: 100,
-                            weight: Math.round((Math.random()) * 10) / 10,
-                        },
-                        separation: {
-                            range: 100,
-                            weight: Math.round((Math.random()) * 10) / 10,
-                        }
-                    },
+                    config: ApplyVariance(masterConfig),
                     master: _master,
                     SetVelocity: function (vec) {
                         this.velocity = vec;
@@ -104,12 +132,12 @@
                     Draw: function () {
                         ctx.globalCompositeOperation = 'source-over';
                         ctx.fillStyle = 'rgb('
-                            + (this.config.alignment.weight * 150 + 80) + ','
-                            + (this.config.cohesion.weight * 150 + 80) + ','
-                            + (this.config.separation.weight * 150 + 80) + ')';
+                            + (this.config.alignment.weight * 180 + 64) + ','
+                            + (this.config.cohesion.weight * 180 + 64) + ','
+                            + (this.config.separation.weight * 180 + 64) + ')';
 
                         ctx.beginPath();
-                        ctx.arc(this.pos.x, this.pos.y, (this.config.baseWeight - 3) / 5 * 6, 0, Math.PI * 2, true);
+                        ctx.arc(this.pos.x, this.pos.y, (this.config.baseWeight - 4) / 3 * 20, 0, Math.PI * 2, true);
                         ctx.fill();
                     },
                     Update: function () {
@@ -204,23 +232,34 @@
 
 
             var boids = [];
-            var boidsCount = 100;
+            var boidsCount = 50;
             for (var i = 0; i < boidsCount; i++) {
                 boids[i] = Boid(i, Math.random() * canvas.width, Math.random() * canvas.height, boids);
-                boids[i].SetVelocity(Vector(Math.random() * 4 - 2, Math.random() * 4 - 2));
+                console.log(boids[i].config);
+                boids[i].SetVelocity(Vector(Math.random() * 2 - 1, Math.random() * 2 - 1));
             }
 
             ////////////////////////////////////////////////////////////////////////////////////
 
             function init() {
                 ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = 'rgb(255,255,255)';
+                ctx.fillStyle = 'rgb(230,230,230)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 window.requestAnimationFrame(draw);
             }
 
             function draw() {
+                if (new Date() - startTime > 8000) {
+                    // REINITIALIZE BOIDS
+                    masterConfig = Config();
+                    for (var i = 0; i < boidsCount; i++) {
+                        boids[i] = Boid(i, Math.random() * canvas.width, Math.random() * canvas.height, boids);
+                        boids[i].SetVelocity(Vector(Math.random() * 2 - 1, Math.random() * 2 - 1));
+                    }
+
+                    startTime = new Date();
+                }
                 ////// UPDATE
                 for (var i = 0; i < boidsCount; i++) {
                     boids[i].Update();
@@ -230,14 +269,14 @@
 
                 // Clear
                 ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = 'rgb(255,255,255,0.3)';
+                ctx.fillStyle = 'rgb(255,255,255,0.05)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 // Draw Boids
                 for (var i = 0; i < boidsCount; i++) {
                     boids[i].Draw();
                 }
-
+                
                 window.requestAnimationFrame(draw);
             }
 
