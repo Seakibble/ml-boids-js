@@ -235,7 +235,6 @@
             var boidsCount = 50;
             for (var i = 0; i < boidsCount; i++) {
                 boids[i] = Boid(i, Math.random() * canvas.width, Math.random() * canvas.height, boids);
-                console.log(boids[i].config);
                 boids[i].SetVelocity(Vector(Math.random() * 2 - 1, Math.random() * 2 - 1));
             }
 
